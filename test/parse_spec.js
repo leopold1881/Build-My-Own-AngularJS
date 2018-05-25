@@ -689,16 +689,4 @@ describe('parse', function () {
     var fn = function () { };
     expect(parse(fn)).toBe(fn);
   });
-
-  it('accepts expressions for watch functions', function () {
-    var theValue;
-
-    scope.aValue = 42;
-    scope.$watch('aValue', function(newValue, oldValue, scope) {
-      theValue = newValue;
-    });
-    scope.$digest();
-
-    expect(theValue).toBe(42);
-  });
 });
