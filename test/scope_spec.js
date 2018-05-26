@@ -405,6 +405,7 @@ describe('Scope', function() {
 
         expect(theValue).toBe(42);
       });
+      
   });
 
 
