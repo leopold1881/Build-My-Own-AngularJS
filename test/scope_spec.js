@@ -405,7 +405,18 @@ describe('Scope', function() {
 
         expect(theValue).toBe(42);
       });
-      
+
+      it('accepts expressions for watch functions', function () {
+        var theValue;
+
+        scope.aColl = [1, 2, 3];
+        scope.$watchCollection('aColl', function(newValue, oldValue, scope) {
+          theValue = newValue;
+        });
+        scope.$digest();
+
+        expect(theValue).toEqual([1, 2, 3]);
+      });
   });
 
 
