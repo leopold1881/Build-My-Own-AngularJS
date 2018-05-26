@@ -1,6 +1,7 @@
 'use strict';
 
 var _ = require('lodash');
+var parse = require('./parse');
 
 function intiWatchVal() {}
 
@@ -29,7 +30,7 @@ function isArrayLike(obj) {
 Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
   var self = this;
   var watcher = {
-    watchFn: watchFn,
+    watchFn: parse(watchFn),
     listenerFn: listenerFn || function () {},
     valueEq: !!valueEq,
     last: intiWatchVal
@@ -432,7 +433,7 @@ Scope.prototype.$$fireEventOnScope = function(eventName, listenerArgs) {
         console.error(e);
       }
       i++;
-    }  
+    }
   }
 };
 
