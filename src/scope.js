@@ -125,7 +125,7 @@ Scope.prototype.$$areEqual = function(newValue, oldValue, valueEq) {
 };
 
 Scope.prototype.$eval = function(expr, locals) {
-  return expr(this, locals);
+  return parse(expr)(this, locals);
 };
 
 Scope.prototype.$apply = function(expr) {
