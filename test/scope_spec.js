@@ -447,6 +447,10 @@ describe('Scope', function() {
       expect(result).toBe(44);
     });
 
+    it('accepts expressions in $eval', function () {
+      expect(scope.$eval('42')).toBe(42);
+    });
+
   });
 
   describe('$apply', function () {
@@ -476,6 +480,11 @@ describe('Scope', function() {
         scope.aValue = 'someOtherValue';
       });
       expect(scope.counter).toBe(2);
+    });
+
+    it('accepts expressions in $apply', function () {
+      scope.aFunction = _.constant(42);
+      expect(scope.$apply('aFunction()')).toBe(42);
     });
   });
 
@@ -581,6 +590,20 @@ describe('Scope', function() {
         expect(scope.counter).toBe(1);
         done();
       }, 50);
+    });
+
+    it('accepts expressions in $evalAsync', function(done) {
+      var called;
+      scope.aFunction = function() {
+        called = true;
+      };
+
+      scope.$evalAsync('aFunction()');
+
+      scope.$$postDigest(function() {
+        expect(called).toBe(true);
+        done();
+      });
     });
   });
 
@@ -2021,7 +2044,7 @@ describe('Scope', function() {
 
       var listener = jasmine.createSpy();
       child.$on('$destroy', listener);
-      debugger;
+
       scope.$destroy();
 
       expect(listener).toHaveBeenCalled();
@@ -2030,7 +2053,7 @@ describe('Scope', function() {
     it('no longers calls listeners after destroyed', function () {
       var listener = jasmine.createSpy();
       scope.$on('myEvent', listener);
-      debugger;
+
       scope.$destroy();
 
       scope.$emit('myEvent');
