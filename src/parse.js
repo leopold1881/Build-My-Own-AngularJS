@@ -70,6 +70,14 @@ function ifDefined(value, defaultValue) {
   return typeof value === 'undefined' ? defaultValue : value;
 }
 
+function isLiteral(ast) {
+  return ast.body.length === 0 ||
+    ast.body.length === 1 && (
+    ast.body[0].type === AST.Literal ||
+    ast.body[0].type === AST.ArrayExpression ||
+    ast.body[0].type === AST.ObjectExpression);
+}
+
 function parse(expr) {
   switch (typeof expr) {
   case 'string':
@@ -575,7 +583,7 @@ ASTCompiler.prototype.compile = function(text) {
     this.state.body.join('') +
     '}; return fn;';
   /* jshint -W054 */
-  return new Function('ensureSafeMemberName',
+  var fn = new Function('ensureSafeMemberName',
                       'ensureSafeObject',
                       'ensureSafeFunction',
                       'ifDefined',
@@ -587,6 +595,8 @@ ASTCompiler.prototype.compile = function(text) {
                         ifDefined,
                         filter);
   /* jshint +W054 */
+  fn.literal = isLiteral(ast);
+  return fn;
 };
 
 ASTCompiler.prototype.recurse = function(ast, context, create) {
