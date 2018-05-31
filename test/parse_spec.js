@@ -689,4 +689,34 @@ describe('parse', function () {
     var fn = function () { };
     expect(parse(fn)).toBe(fn);
   });
+
+  it('marks integers literal', function () {
+    var fn = parse('42');
+    expect(fn.literal).toBe(true);
+  });
+
+  it('marks strings literal', function () {
+    var fn = parse('"abc"');
+    expect(fn.literal).toBe(true);
+  });
+
+  it('marks booleans literal', function () {
+    var fn = parse('true');
+    expect(fn.literal).toBe(true);
+  });
+
+  it('marks arrays literal', function () {
+    var fn = parse('[1, 2, aVariable]');
+    expect(fn.literal).toBe(true);
+  });
+
+  it('marks unary expressions non-literal', function () {
+    var fn = parse('!false');
+    expect(fn.literal).toBe(false);
+  });
+
+  it('marks binary expressions non-literal', function () {
+    var fn = parse('1 + 2');
+    expect(fn.literal).toBe(false);
+  });
 });
