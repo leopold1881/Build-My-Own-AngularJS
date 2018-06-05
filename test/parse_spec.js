@@ -719,4 +719,54 @@ describe('parse', function () {
     var fn = parse('1 + 2');
     expect(fn.literal).toBe(false);
   });
+
+  it('marks integers constant', function () {
+    var fn = parse('42');
+    expect(fn.constant).toBe(true);
+  });
+
+  it('marks strings constant', function () {
+    var fn = parse('"abc"');
+    expect(fn.constant).toBe(true);
+  });
+
+  it('marks booleans constant', function () {
+    var fn = parse('true');
+    expect(fn.constant).toBe(true);
+  });
+
+  it('marks identifiters non-constant', function () {
+    var fn = parse('a');
+    expect(fn.constant).toBe(false);
+  });
+
+  it('marks arrays constant when elements are constant', function () {
+    expect(parse('[1, 2, 3]').constant).toBe(true);
+    expect(parse('[1, [2, [3]]]').constant).toBe(true);
+    expect(parse('[1, 2, a]').constant).toBe(false);
+    expect(parse('[1, [2, [a]]]').constant).toBe(false);
+  });
+
+  it('marks objects constant when values are constant', function () {
+    expect(parse('{a: 1, b: 2}').constant).toBe(true);
+    expect(parse('{a: 1, b: {c: 3}}').constant).toBe(true);
+    expect(parse('{a: 2, b: something}').constant).toBe(false);
+    expect(parse('{a: 1, b: {c: something}}').constant).toBe(false);
+  });
+
+  it('marks this as non-constant', function () {
+    expect(parse('this').constant).toBe(false);
+  });
+
+  it('marks non-computed lookup constant when object is constant', function () {
+    expect(parse('{a: 1}.a').constant).toBe(true);
+    expect(parse('obj.a').constant).toBe(false);
+  });
+
+  it('marks computer lookup constant when object and key care', function () {
+    expect(parse('{a: 1}["a"]').constant).toBe(true);
+    expect(parse('obj["a"]').constant).toBe(false);
+    expect(parse('{a: 1}[something]').constant).toBe(false);
+    expect(parse('obj[something]').constant).toBe(false);
+  });
 });
