@@ -78,6 +78,54 @@ function isLiteral(ast) {
     ast.body[0].type === AST.ObjectExpression);
 }
 
+function markConstantExpressions(ast) {
+  var allConstants;
+  switch (ast.type) {
+    case AST.Program:
+      allConstants = true;
+      _.forEach(ast.body, function(expr) {
+        markConstantExpressions(expr);
+        allConstants = allConstants && expr.constant;
+      });
+      ast.constant = allConstants;
+      break;
+    case AST.Literal:
+      ast.constant = true;
+      break;
+    case AST.Identifier:
+      ast.constant = false;
+      break;
+    case AST.ArrayExpression:
+      allConstants = true;
+      _.forEach(ast.elements, function(element) {
+        markConstantExpressions(element);
+        allConstants = allConstants && element.constant;
+      });
+      ast.constant = allConstants;
+      break;
+    case AST.ObjectExpression:
+      allConstants = true;
+      _.forEach(ast.properties, function(property) {
+        markConstantExpressions(property.value);
+        allConstants = allConstants && property.value.constant;
+      });
+      ast.constant = allConstants;
+      break;
+    case AST.ThisExpression:
+    case AST.LocalsExpression:
+      ast.constant = false;
+      break;
+    case AST.MemberExpression:
+      markConstantExpressions(ast.object);
+      if (ast.computed) {
+        markConstantExpressions(ast.property);
+      }
+      ast.constant = ast.object.constant &&
+                      (!ast.computed || ast.property.constant);
+      break;
+  }
+};
+
 function parse(expr) {
   switch (typeof expr) {
   case 'string':
@@ -568,6 +616,7 @@ function ASTCompiler(astBuilder) {
 
 ASTCompiler.prototype.compile = function(text) {
   var ast = this.astBuilder.ast(text);
+  markConstantExpressions(ast);
   this.state = {
     body: [],
     nextId: 0,
@@ -596,6 +645,7 @@ ASTCompiler.prototype.compile = function(text) {
                         filter);
   /* jshint +W054 */
   fn.literal = isLiteral(ast);
+  fn.constant = ast.constant;
   return fn;
 };
 
