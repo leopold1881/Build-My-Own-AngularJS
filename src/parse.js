@@ -123,6 +123,36 @@ function markConstantExpressions(ast) {
       ast.constant = ast.object.constant &&
                       (!ast.computed || ast.property.constant);
       break;
+    case AST.CallExpression:
+      allConstants = ast.filter ? true : false;
+      _.forEach(ast.arguments, function(arg) {
+        markConstantExpressions(arg);
+        allConstants = allConstants && arg.constant;
+      });
+      ast.constant = allConstants;
+      break;
+    case AST.AssignmentExpression:
+      markConstantExpressions(ast.left);
+      markConstantExpressions(ast.right);
+      ast.constant = ast.left.constant && ast.right.constant;
+      break;
+    case AST.UnaryExpression:
+      markConstantExpressions(ast.argument);
+      ast.constant = ast.argument.constant;
+      break;
+    case AST.BinaryExpression:
+    case AST.LogicalExpression:
+      markConstantExpressions(ast.left);
+      markConstantExpressions(ast.right);
+      ast.constant = ast.left.constant && ast.right.constant;
+      break;
+    case AST.ConditionalExpression:
+      markConstantExpressions(ast.test);
+      markConstantExpressions(ast.consequent);
+      markConstantExpressions(ast.alternate);
+      ast.constant =
+        ast.test.constant && ast.consequent.constant && ast.alternate.constant;
+      break;
   }
 };
 
