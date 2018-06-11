@@ -3,7 +3,20 @@
 var _ = require('lodash');
 var parse = require('./parse');
 
+/**
+ *
+ * @function intiWatchVal
+ * an initial assigned value to the property of "last" inside the watcher object
+ */
 function intiWatchVal() {}
+
+/**
+ *
+ * @function Scope
+ * a constructor object that contains all the properties needed for scope digestion
+ * @return Scope object
+ *
+ */
 
 function Scope() {
   this.$$watchers = [];
@@ -29,8 +42,15 @@ function isArrayLike(obj) {
 
 Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
   var self = this;
+
+  watchFn = parse(watchFn);
+
+  if(watchFn.$$watchDelegate) {
+    return watchFn.$$watchDelegate(self, listenerFn, valueEq, watchFn);
+  }
+
   var watcher = {
-    watchFn: parse(watchFn),
+    watchFn: watchFn,
     listenerFn: listenerFn || function () {},
     valueEq: !!valueEq,
     last: intiWatchVal
