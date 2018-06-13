@@ -173,6 +173,32 @@ function constantWatchDelegate(scope, listenerFn, valueEq, watchFn) {
 }
 
 function oneTimeWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+  var lastValue;
+  var unwatch = scope.$watch(
+    function () {
+      return watchFn(scope);
+    },
+    function(newValue, oldValue, scope) {
+      lastValue = newValue;
+      if (_.isFunction(listenerFn)) {
+        listenerFn.apply(this, arguments);
+      }
+      if (!_.isUndefined(newValue)) {
+        scope.$$postDigest(function () {
+          if (!_.isUndefined(lastValue)) {
+            unwatch();
+          }
+        });
+      }
+    }, valueEq
+  );
+  return unwatch;
+}
+
+function oneTimeLiteralWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+  function isAllDefined(val) {
+    return !_.some(val, _.isUndefined);
+  }
   var unwatch = scope.$watch(
     function () {
       return watchFn(scope);
@@ -181,13 +207,18 @@ function oneTimeWatchDelegate(scope, listenerFn, valueEq, watchFn) {
       if (_.isFunction(listenerFn)) {
         listenerFn.apply(this, arguments);
       }
-      if (!_.isUndefined(newValue)) {
-        unwatch();
+      if (isAllDefined(newValue)) {
+        scope.$$postDigest(function () {
+          if (isAllDefined(newValue)) {
+            unwatch();
+          }
+        });
       }
     }, valueEq
   );
   return unwatch;
 }
+
 
 function parse(expr) {
   switch (typeof expr) {
@@ -203,7 +234,8 @@ function parse(expr) {
     if (parseFn.constant) {
       parseFn.$$watchDelegate = constantWatchDelegate;
     } else if (oneTime) {
-      parseFn.$$watchDelegate = oneTimeWatchDelegate;
+      parseFn.$$watchDelegate = parseFn.literal ? oneTimeLiteralWatchDelegate :
+                                                  oneTimeWatchDelegate;
     }
     return parseFn;
   case 'function':
