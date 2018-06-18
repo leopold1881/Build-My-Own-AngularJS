@@ -820,26 +820,22 @@ describe('parse', function () {
     expect(parse('a ? b : c').constant).toBe(false);
   });
 
+  it('allows calling assign on identifier expressions', function () {
+    var fn = parse('anAttribute');
+    expect(fn.assign).toBeDefined();
 
+    var scope = {};
+    fn.assign(scope, 42);
+    expect(scope.anAttribute).toBe(42);
+  });
 
+  it('allows calling assign on memeber expressions', function () {
+    var fn = parse('anObject.anAttribute');
+    expect(fn.assign).toBeDefined();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    var scope = {};
+    fn.assign(scope, 42);
+    expect(scope.anObject).toEqual({anAttribute: 42});
+  });
 
 });
