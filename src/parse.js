@@ -286,6 +286,19 @@ function getInputs(ast) {
   }
 }
 
+function isAssignable(ast) {
+  return ast.type === AST.Identifier || ast.type == AST.MemberExpression;
+}
+
+function assignableAST(ast) {
+  if (ast.body.length == 1 && isAssignable(ast.body[0])) {
+    return {
+      type: AST.AssignmentExpression,
+      left: ast.body[0],
+      right: {type: AST.NGValueParameter}
+    };
+  }
+}
 
 function parse(expr) {
   switch (typeof expr) {
@@ -791,11 +804,13 @@ function ASTCompiler(astBuilder) {
 
 ASTCompiler.prototype.compile = function(text) {
   var ast = this.astBuilder.ast(text);
+  var extra = '';
   markConstantAndWatchExpressions(ast);
   this.state = {
     nextId: 0,
     fn: {body: [], vars: []},
     filters: {},
+    assign: {body: [], vars: []},
     inputs: []
   };
   this.stage = 'inputs';
@@ -806,6 +821,19 @@ ASTCompiler.prototype.compile = function(text) {
     this.state[inputKey].body.push('return ' + this.recurse(input) + ';');
     this.state.inputs.push(inputKey);
   }, this));
+  this.stage = 'assign';
+  var assignable = assignableAST(ast);
+  if (assignable) {
+    this.state.computing = 'assign';
+    this.state.assign.body.push(this.recurse(assignable));
+    extra = 'fn.assign = function(s,v,l){' +
+      (this.state.assign.vars.length ?
+        'var ' + this.state.assign.vars.join(',') + ';' :
+        ''
+      ) +
+      this.state.assign.body.join('') +
+      '};';
+  }
   this.stage = 'main';
   this.state.computing = 'fn';
   this.recurse(ast);
@@ -817,6 +845,7 @@ ASTCompiler.prototype.compile = function(text) {
     this.state.fn.body.join('') +
     '};' +
     this.watchFns() +
+    extra +
     ' return fn;';
   /* jshint -W054 */
   var fn = new Function('ensureSafeMemberName',
@@ -991,6 +1020,9 @@ ASTCompiler.prototype.recurse = function(ast, context, create) {
       this.assign(intoId, this.recurse(ast.consequent)));
     this.if_(this.not(testId),
       this.assign(intoId, this.recurse(ast.alternate)));
+      break;
+  case AST.NGValueParameter:
+    return 'v';
   }
   return intoId;
 };
