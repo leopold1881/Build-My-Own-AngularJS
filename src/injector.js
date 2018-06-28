@@ -2,6 +2,9 @@
 
 var _ = require('lodash');
 
+var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
+var FN_ARG = /^\s*(_?)(\S+)\1\s*$/;
+
 function createInjector(modulesToLoad) {
   var cache = {};
   var loadModules = {};
@@ -18,8 +21,15 @@ function createInjector(modulesToLoad) {
   function annotate(fn) {
     if (_.isArray(fn)) {
       return fn.slice(0, fn.length - 1);
-    } else {
+    } else if (fn.$inject){
       return fn.$inject;
+    } else if (!fn.length){
+      return [];
+    } else {
+      var argDeclaration = fn.toString().match(FN_ARGS);
+      return _.map(argDeclaration[1].split(','), function(argName) {
+        return argName.match(FN_ARG)[2];
+      });
     }
   }
 
