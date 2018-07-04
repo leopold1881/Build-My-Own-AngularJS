@@ -39,7 +39,7 @@ function createInjector(modulesToLoad, strictDi) {
   }
 
   function invoke(fn, self, locals) {
-    var args = _.map(fn.$inject, function(token) {
+    var args = _.map(annotate(fn), function(token) {
       if (_.isString(token)) {
         return locals && locals.hasOwnProperty(token) ?
           locals[token] :
@@ -48,6 +48,9 @@ function createInjector(modulesToLoad, strictDi) {
         throw 'Incorrect injection token! Expected a string, got '+token;
       }
     });
+    if (_.isArray(fn)) {
+      fn = _.last(fn);
+    }
     return fn.apply(self, args);
   }
 
