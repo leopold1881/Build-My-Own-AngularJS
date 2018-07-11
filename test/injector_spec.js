@@ -214,7 +214,7 @@ describe('injector', function () {
       var injector = createInjector(['myModule']);
 
       var fn = ['a', 'b', function(one, two) { return one + two; }];
-      debugger;
+
       expect(injector.invoke(fn)).toBe(3);
     });
 
@@ -300,5 +300,25 @@ describe('injector', function () {
       expect(instance.result).toBe(4);
     });
 
+
+
+
+
+  });
+
+  describe('provider', function () {
+    it('allows registering a provider and uses its $get', function () {
+      var module = window.angular.module('myModule', []);
+      module.provider('a', {
+        $get: function () {
+          return 42;
+        }
+      });
+
+      var injector = createInjector(['myModule']);
+
+      expect(injector.has('a')).toBe(true);
+      expect(injector.get('a')).toBe(42);
+    });
   });
 });
