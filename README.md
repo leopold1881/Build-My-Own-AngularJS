@@ -1,7 +1,7 @@
 # Build-My-Own-AngularJS
 
 
-This application is built based on the book, "Build Your Own Angular". The current repository contains the implementation of the AngularJS features listed below right now and more features will be added.
+This application is built based on the book, "Build Your Own Angular". The current repository contains the AngularJS features listed below written in pure JavaScript and more features will be added in the future.
 
 http://teropa.info/build-your-own-angular
 
