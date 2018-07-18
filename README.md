@@ -1,7 +1,8 @@
 # Build-My-Own-AngularJS
 
 
-The current repository contains the implementation of the AngularJS features listed below right now.
+This application is built based on the book, "Build Your Own Angular". The current repository contains the implementation of the AngularJS features listed below right now and more features will be added.
+
 http://teropa.info/build-your-own-angular
 
 ## Part 1: Scopes
