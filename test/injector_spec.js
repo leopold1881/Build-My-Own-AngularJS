@@ -342,7 +342,6 @@ describe('injector', function () {
 
     it('injects the $get method of a provider lazily', function () {
       var module = window.angular.module('myModule', []);
-      debugger;
       module.provider('b', {
         $get: function(a) {
           return a + 2;
@@ -353,6 +352,29 @@ describe('injector', function () {
       var injector = createInjector(['myModule']);
 
       expect(injector.get('b')).toBe(3);
+    });
+
+    it('instantiates a dependency only once', function () {
+      var module = window.angular.module('myModule', []);
+
+      module.provider('a', {$get: function () { return {}; }});
+
+      var injector = createInjector(['myModule']);
+
+      expect(injector.get('a')).toBe(injector.get('a'));
+    });
+
+    it('notifies the user about a cicular dependency', function () {
+      var module = window.angular.module('myModule', []);
+      module.provider('a', {$get: function(b) {}});
+      module.provider('b', {$get: function(b) {}});
+      module.provider('c', {$get: function(b) {}});
+
+      var injector = createInjector(['myModule']);
+
+      expect(function () {
+        injector.get('a');
+      }).toThrowError(/Circular dependency found/);
     });
 
   });
